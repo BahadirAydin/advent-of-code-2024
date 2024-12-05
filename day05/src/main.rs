@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::time::Instant;
@@ -26,39 +27,20 @@ fn read_input(content: &str) -> (HashMap<&str, HashSet<&str>>, Vec<Vec<&str>>) {
     (rules, updates)
 }
 
-fn is_valid(rules: &HashMap<&str, HashSet<&str>>, update: &Vec<&str>) -> bool {
-    for (&before, after) in rules {
-        match update.iter().position(|&u| u == before) {
-            Some(before_index) => {
-                for &v in after {
-                    match update.iter().position(|&u| u == v) {
-                        Some(after_index) => {
-                            if after_index < before_index {
-                                return false;
-                            }
-                        }
-                        None => {}
+fn is_valid(rules: &HashMap<&str, HashSet<&str>>, update: &[&str]) -> bool {
+    let positions: HashMap<&str, usize> = update.iter().enumerate().map(|(i, &u)| (u, i)).collect();
+    for (&before, after_set) in rules {
+        if let Some(&before_index) = positions.get(before) {
+            for &after in after_set {
+                if let Some(&after_index) = positions.get(after) {
+                    if after_index < before_index {
+                        return false;
                     }
                 }
             }
-            None => {}
         }
     }
     true
-}
-
-fn sort(update: &mut Vec<&str>, rules: &HashMap<&str, HashSet<&str>>) {
-    update.sort_by(|a, b| {
-        for (&before, after) in rules {
-            if &before == a && after.contains(b) {
-                return std::cmp::Ordering::Greater;
-            }
-            if &before == b && after.contains(a) {
-                return std::cmp::Ordering::Less;
-            }
-        }
-        std::cmp::Ordering::Equal
-    });
 }
 
 fn part1(input: &str) -> i32 {
@@ -73,12 +55,24 @@ fn part1(input: &str) -> i32 {
 }
 fn part2(input: &str) -> i32 {
     let (rules, updates) = read_input(input);
-    let mut sum = 0;
-    for mut update in updates {
-        sort(&mut update, &rules);
-        sum += update[update.len() / 2].parse::<i32>().unwrap();
+    let mut precedence: HashMap<(&str, &str), Ordering> = HashMap::new();
+    for (&before, after) in &rules {
+        for &a in after {
+            precedence.insert((before, a), Ordering::Greater);
+            precedence.insert((a, before), Ordering::Less);
+        }
     }
-    sum
+    updates
+        .into_iter()
+        .filter_map(|mut update| -> Option<i32> {
+            if !is_valid(&rules, &update) {
+                update.sort_by(|a, b| *precedence.get(&(a, b)).unwrap_or(&Ordering::Equal));
+                update[update.len() / 2].parse::<i32>().ok()
+            } else {
+                None
+            }
+        })
+        .sum()
 }
 
 fn main() {
