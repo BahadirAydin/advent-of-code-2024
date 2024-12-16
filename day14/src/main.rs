@@ -1,19 +1,16 @@
 use std::fs;
 use std::time::Instant;
 
-#[derive(Debug)]
 struct Position {
     x: i32,
     y: i32,
 }
 
-#[derive(Debug)]
 struct Velocity {
     x: i32,
     y: i32,
 }
 
-#[derive(Debug)]
 struct Robot {
     position: Position,
     velocity: Velocity,
@@ -50,9 +47,6 @@ fn read_input(input: &str) -> Vec<Robot> {
         })
         .collect()
 }
-
-// const WIDTH: i32 = 101;
-// const HEIGHT: i32 = 103;
 
 const WIDTH: i32 = 101;
 const HEIGHT: i32 = 103;
