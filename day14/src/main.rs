@@ -54,9 +54,10 @@ const HEIGHT: i32 = 103;
 const SECONDS: i32 = 100;
 
 fn move_robot(robot: &Robot, times: i32) -> Position {
-    let x = (robot.position.x + robot.velocity.x * times).rem_euclid(WIDTH);
-    let y = (robot.position.y + robot.velocity.y * times).rem_euclid(HEIGHT);
-    Position { x, y }
+    Position {
+        x: robot.position.x + robot.velocity.x * times,
+        y: robot.position.y + robot.velocity.y * times,
+    }
 }
 
 enum Quadrant {
@@ -64,7 +65,7 @@ enum Quadrant {
     TopRight,
     BottomLeft,
     BottomRight,
-    Middle,
+    Middle, // Not a real quadrant, represents the middle of the grid
 }
 
 fn determine_quadrant(pos: &Position) -> Quadrant {
@@ -101,9 +102,9 @@ fn calculate_safety_factor(robots: &Vec<Robot>) -> i32 {
 
 fn part1(input: &str) -> i32 {
     let mut robots = read_input(input);
-    for robot in robots.iter_mut() {
+    robots.iter_mut().for_each(|robot| {
         robot.position = move_robot(robot, SECONDS);
-    }
+    });
     calculate_safety_factor(&robots)
 }
 
@@ -138,4 +139,3 @@ fn main() {
     let duration = start.elapsed();
     println!("Part 2: {} took {:#?}", res2, duration);
 }
-
